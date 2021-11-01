@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from math import sqrt
 
-from src.GameState import GameState
+from GameState import GameState
 
 
 # parent abstract class for heuristics
@@ -28,14 +28,12 @@ class Heuristic(ABC):
         return heuristic_cost
 
 
-# euclidean distance heuristic
 class EuclideanHeuristic(Heuristic):
     @staticmethod
     def _calculate_cell_cost(x_cell, y_cell, x_goal, y_goal):
         return sqrt((x_cell - x_goal) ** 2 + (y_cell - y_goal) ** 2)
 
 
-# manhattan distance heuristic
 class ManhattanHeuristic(Heuristic):
     @staticmethod
     def _calculate_cell_cost(x_cell, y_cell, x_goal, y_goal):
