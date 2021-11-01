@@ -1,10 +1,10 @@
 class GameState:
-    def __init__(self, configuration: str, parent=None, movement_cost=0, heuristic_cost=0, depth=1):
+    def __init__(self, configuration: str, parent=None, movement_cost=0, heuristic_cost=0, depth=0):
         self.__configuration = configuration  # string representing the board configuration
         self.__parent = parent  # this state's parent state
         self.__movement_cost = movement_cost  # the cost from the initial state to this state
         self.__heuristic_cost = heuristic_cost  # the estimated cost to the goal
-        self.__depth = depth # the depth of the node in the search tree
+        self.__depth = depth  # the depth of the node in the search tree
 
     # custom less_than function to be used in priority queue
     def __lt__(self, other):
@@ -61,6 +61,7 @@ class GameState:
         for move in moves:
             if self.__is_legal_move(blank, blank + move):
                 children.append(
-                    GameState(self.__swap(self.__configuration, blank, blank + move), self, self.__movement_cost + 1)
+                    GameState(configuration=self.__swap(self.__configuration, blank, blank + move), parent=self,
+                              movement_cost=self.__movement_cost + 1, depth=self.depth + 1)
                 )
         return children

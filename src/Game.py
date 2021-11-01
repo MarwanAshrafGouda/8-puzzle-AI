@@ -3,9 +3,8 @@
 # shuffle initial state or allow user to enter it ...etc
 import timeit
 
-from GameState import GameState
-from Heuristics import ManhattanHeuristic, EuclideanHeuristic
-from SearchAlgorithms import BFS, DFS, AStar
+from Heuristics import *
+from SearchAlgorithms import *
 
 
 def visualize_board(string: str):
@@ -22,9 +21,10 @@ algorithm = AStar(ManhattanHeuristic())
 start = timeit.default_timer()
 goal, expanded = algorithm.search(initial_state)
 stop = timeit.default_timer()
-print(str((stop - start) * 1000) + " ms")
-print(len(expanded))
-print(str(goal.movement_cost) + '\n')
+print("Runtime: " + str((stop - start) * 1000) + " ms")
+print("Number of expanded nodes: " + str(len(expanded)))
+print("Cost: " + str(goal.movement_cost))
+print("Goal depth: " + str(goal.depth) + '\n')
 sequence = []
 while goal:
     sequence.append(goal.configuration)

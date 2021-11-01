@@ -3,10 +3,10 @@ from abc import abstractmethod, ABC
 from collections import deque
 
 from GameState import GameState
-# parent abstract class for all search algorithms
 from Heuristics import Heuristic
 
 
+# parent abstract class for all search algorithms
 class SearchAlgorithm(ABC):
     def __init__(self):
         self.__expanded = set()  # a set of all expanded nodes
@@ -20,53 +20,38 @@ class SearchAlgorithm(ABC):
         pass
 
 
+# a parent class to DFS and BFS
 class UninformedSearch(SearchAlgorithm):
+    def __init__(self):
+        super().__init__()
+        self._frontier = deque()
+
     @abstractmethod
+    # popping the deque according to the type of search
     def remove_from_frontier(self):
         pass
 
     def search(self, initial_state: GameState):
-        frontier = deque()
-        frontier.append(initial_state)
-        while frontier:
-            curr = frontier.popleft()
+        self._frontier.append(initial_state)
+        while self._frontier:
+            curr = self.remove_from_frontier()
             self.expanded.add(curr.configuration)
             if curr.is_goal():
                 return curr, self.expanded
             for child in curr.spawn_children():
-                if child.configuration not in self.expanded and child not in frontier:
-                    frontier.append(child)
+                if child.configuration not in self.expanded and child not in self._frontier:
+                    self._frontier.append(child)
         return None, self.expanded
 
 
-class BFS(SearchAlgorithm):
-    def search(self, initial_state: GameState):
-        frontier = deque()  # used as a queue
-        frontier.append(initial_state)
-        while frontier:
-            curr = frontier.popleft()
-            self.expanded.add(curr.configuration)
-            if curr.is_goal():
-                return curr, self.expanded
-            for child in curr.spawn_children():
-                if child.configuration not in self.expanded and child not in frontier:
-                    frontier.append(child)
-        return None, self.expanded
+class BFS(UninformedSearch):
+    def remove_from_frontier(self):
+        return self._frontier.popleft()
 
 
-class DFS(SearchAlgorithm):
-    def search(self, initial_state: GameState):
-        frontier = deque()  # used as a stack
-        frontier.append(initial_state)
-        while frontier:
-            curr = frontier.pop()
-            self.expanded.add(curr.configuration)
-            if curr.is_goal():
-                return curr, self.expanded
-            for child in curr.spawn_children():
-                if child.configuration not in self.expanded and child not in frontier:
-                    frontier.append(child)
-        return None, self.expanded
+class DFS(UninformedSearch):
+    def remove_from_frontier(self):
+        return self._frontier.pop()
 
 
 class AStar(SearchAlgorithm):
