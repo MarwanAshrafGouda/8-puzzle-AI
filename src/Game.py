@@ -1,6 +1,3 @@
-# the main file in which the game is played
-# should be the interface to the program, display GUI, keep track of time,
-# shuffle initial state or allow user to enter it ...etc
 import random
 import timeit
 
@@ -32,17 +29,21 @@ while not is_solvable(shuffled_board):
     shuffled_board = ''.join(random.sample(goal_state, len(goal_state)))
 print(shuffled_board)
 initial_state = GameState(shuffled_board)
+
 algorithm = AStar(ManhattanHeuristic())
 # algorithm = AStar(EuclideanHeuristic())
 # algorithm = BFS()
 # algorithm = DFS()
+
 start = timeit.default_timer()
 goal, expanded, max_depth = algorithm.search(initial_state)
 stop = timeit.default_timer()
+
 print("Runtime: " + str((stop - start) * 1000) + " ms")
 print("Number of expanded nodes: " + str(len(expanded)))
 print("Cost: " + str(goal.movement_cost))
 print("Search depth: " + str(max_depth) + '\n')
+
 sequence = []
 while goal:
     sequence.append(goal.configuration)

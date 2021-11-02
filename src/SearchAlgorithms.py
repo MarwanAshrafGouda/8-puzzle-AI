@@ -28,6 +28,11 @@ class SearchAlgorithm(ABC):
     def search(self, initial_state: GameState):
         pass
 
+    @staticmethod
+    # visualizes the given board configuration
+    def _string_to_grid(config: str):
+        print(config)
+
 
 # a parent class for DFS and BFS
 class UninformedSearch(SearchAlgorithm):
@@ -40,16 +45,23 @@ class UninformedSearch(SearchAlgorithm):
     def remove_from_frontier(self):
         pass
 
+    def __is_in_frontier(self, configuration: str):
+        for node in self._frontier:
+            if node.configuration == configuration:
+                return True
+        return False
+
     def search(self, initial_state: GameState):
         self._frontier.append(initial_state)
         while self._frontier:
             curr = self.remove_from_frontier()
+            self._string_to_grid(curr.configuration)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():
                 return curr, self.expanded, self.max_depth
             for child in curr.spawn_children():
-                if child.configuration not in self.expanded and child not in self._frontier:
+                if child.configuration not in self.expanded and not self.__is_in_frontier(child.configuration):
                     self._frontier.append(child)
         return None, self.expanded, self.max_depth
 
@@ -77,12 +89,13 @@ class AStar(SearchAlgorithm):
         heapq.heappush(frontier, initial_state)
         while frontier:
             curr = heapq.heappop(frontier)
+            self._string_to_grid(curr.configuration)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():
                 return curr, self.expanded, self.max_depth
             for child in curr.spawn_children():
-                if child.configuration not in self.expanded and child not in frontier:
+                if child.configuration not in self.expanded:
                     child.heuristic_cost = self.__heuristic.calculate_cost(child)
                     heapq.heappush(frontier, child)
         return None, self.expanded, self.max_depth
