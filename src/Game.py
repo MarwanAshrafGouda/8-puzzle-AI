@@ -1,6 +1,7 @@
 # the main file in which the game is played
 # should be the interface to the program, display GUI, keep track of time,
 # shuffle initial state or allow user to enter it ...etc
+import random
 import timeit
 
 from Heuristics import *
@@ -13,7 +14,24 @@ def visualize_board(string: str):
     print('')
 
 
-initial_state = GameState("125340678")
+# This function returns true if the given configuration is solvable.
+def is_solvable(configuration: str):
+    # Count inversions in given 8 puzzle
+    inv_count = 0
+    for i in range(len(configuration)):
+        for j in range(i + 1, len(configuration)):
+            if configuration[i] != '0' and configuration[j] != '0' and configuration[i] > configuration[j]:
+                inv_count += 1
+    return inv_count % 2 == 0
+
+
+goal_state = "012345678"
+shuffled_board = ''.join(random.sample(goal_state, len(goal_state)))
+# To make sure that the random configuration is solvable
+while not is_solvable(shuffled_board):
+    shuffled_board = ''.join(random.sample(goal_state, len(goal_state)))
+print(shuffled_board)
+initial_state = GameState(shuffled_board)
 algorithm = AStar(ManhattanHeuristic())
 # algorithm = AStar(EuclideanHeuristic())
 # algorithm = BFS()

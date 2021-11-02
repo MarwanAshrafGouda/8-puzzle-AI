@@ -73,6 +73,7 @@ class AStar(SearchAlgorithm):
 
     def search(self, initial_state: GameState):
         frontier = []
+        initial_state.heuristic_cost = self.__heuristic.calculate_cost(initial_state)
         heapq.heappush(frontier, initial_state)
         while frontier:
             curr = heapq.heappop(frontier)
@@ -82,6 +83,6 @@ class AStar(SearchAlgorithm):
                 return curr, self.expanded, self.max_depth
             for child in curr.spawn_children():
                 if child.configuration not in self.expanded and child not in frontier:
-                    child.heuristic = self.__heuristic.calculate_cost(child)
+                    child.heuristic_cost = self.__heuristic.calculate_cost(child)
                     heapq.heappush(frontier, child)
         return None, self.expanded, self.max_depth
