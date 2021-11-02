@@ -25,9 +25,8 @@ def is_solvable(configuration: str):
 goal_state = "012345678"
 shuffled_board = ''.join(random.sample(goal_state, len(goal_state)))
 # To make sure that the random configuration is solvable
-while not is_solvable(shuffled_board):
-    shuffled_board = ''.join(random.sample(goal_state, len(goal_state)))
-print(shuffled_board)
+# while not is_solvable(shuffled_board):
+#     shuffled_board = ''.join(random.sample(goal_state, len(goal_state)))
 initial_state = GameState(shuffled_board)
 
 algorithm = AStar(ManhattanHeuristic())
@@ -41,8 +40,11 @@ stop = timeit.default_timer()
 
 print("Runtime: " + str((stop - start) * 1000) + " ms")
 print("Number of expanded nodes: " + str(len(expanded)))
-print("Cost: " + str(goal.movement_cost))
-print("Search depth: " + str(max_depth) + '\n')
+print("Search depth: " + str(max_depth))
+if goal:
+    print("Cost: " + str(goal.movement_cost))
+else:
+    print("Is this board configuration hontou ni invincible?")
 
 sequence = []
 while goal:

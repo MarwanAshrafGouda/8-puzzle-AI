@@ -55,13 +55,15 @@ class UninformedSearch(SearchAlgorithm):
         self._frontier.append(initial_state)
         while self._frontier:
             curr = self.remove_from_frontier()
+            if curr.configuration in self.expanded:
+                continue
             self._string_to_grid(curr.configuration)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():
                 return curr, self.expanded, self.max_depth
             for child in curr.spawn_children():
-                if child.configuration not in self.expanded and not self.__is_in_frontier(child.configuration):
+                if child.configuration not in self.expanded:
                     self._frontier.append(child)
         return None, self.expanded, self.max_depth
 
@@ -89,6 +91,8 @@ class AStar(SearchAlgorithm):
         heapq.heappush(frontier, initial_state)
         while frontier:
             curr = heapq.heappop(frontier)
+            if curr.configuration in self.expanded:
+                continue
             self._string_to_grid(curr.configuration)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
