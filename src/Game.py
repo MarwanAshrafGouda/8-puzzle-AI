@@ -31,3 +31,4 @@ while goal:
     goal = goal.parent
 for config in reversed(sequence):
     visualize_board(config)
+
