@@ -2,8 +2,8 @@ import heapq
 from abc import abstractmethod, ABC
 from collections import deque
 
-from GameState import GameState
-from Heuristics import Heuristic
+from state import GameState
+from heuristics import Heuristic
 
 
 # parent abstract class for all search algorithms
@@ -35,6 +35,7 @@ class SearchAlgorithm(ABC):
 
 
 # a parent class for DFS and BFS
+# noinspection DuplicatedCode
 class UninformedSearch(SearchAlgorithm):
     def __init__(self):
         super().__init__()
@@ -80,6 +81,7 @@ class DFS(UninformedSearch):
         return self._frontier.pop()
 
 
+# noinspection DuplicatedCode
 class AStar(SearchAlgorithm):
     def __init__(self, heuristic: Heuristic):
         self.__heuristic = heuristic

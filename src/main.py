@@ -55,14 +55,13 @@ for config in reversed(sequence):
     visualize_board(config)
 """
 
-
 import sys
-import GameGUI as gui
+import gui as game
 from PyQt5 import QtWidgets
 
 app = QtWidgets.QApplication(sys.argv)
-GameGUI = QtWidgets.QMainWindow()
-ui = gui.Ui_GameGUI()
-ui.setupUi(GameGUI)
-GameGUI.show()
+gui = QtWidgets.QMainWindow()
+ui = game.UiGame()
+ui.setup_ui(gui)
+gui.show()
 sys.exit(app.exec_())

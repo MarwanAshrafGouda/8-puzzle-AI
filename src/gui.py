@@ -10,21 +10,22 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_GameGUI(object):
-    def setupUi(self, GameGUI):
-        GameGUI.setObjectName("GameGUI")
-        GameGUI.resize(640, 480)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(GameGUI.sizePolicy().hasHeightForWidth())
-        GameGUI.setSizePolicy(sizePolicy)
-        GameGUI.setMinimumSize(QtCore.QSize(640, 480))
-        GameGUI.setMaximumSize(QtCore.QSize(640, 480))
+# noinspection PyAttributeOutsideInit,SpellCheckingInspection
+class UiGame(object):
+    def setup_ui(self, gui):
+        gui.setObjectName("GameGUI")
+        gui.resize(640, 480)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(gui.sizePolicy().hasHeightForWidth())
+        gui.setSizePolicy(size_policy)
+        gui.setMinimumSize(QtCore.QSize(640, 480))
+        gui.setMaximumSize(QtCore.QSize(640, 480))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("./imgs/default.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        GameGUI.setWindowIcon(icon)
-        self.centralwidget = QtWidgets.QWidget(GameGUI)
+        gui.setWindowIcon(icon)
+        self.centralwidget = QtWidgets.QWidget(gui)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(20, 10, 431, 431))
@@ -111,17 +112,17 @@ class Ui_GameGUI(object):
         self.option_ch_3 = QtWidgets.QCheckBox(self.options_box)
         self.option_ch_3.setGeometry(QtCore.QRect(10, 80, 70, 17))
         self.option_ch_3.setObjectName("option_ch_3")
-        GameGUI.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(GameGUI)
+        gui.setCentralWidget(self.centralwidget)
+        self.statusbar = QtWidgets.QStatusBar(gui)
         self.statusbar.setObjectName("statusbar")
-        GameGUI.setStatusBar(self.statusbar)
-        self.set_text(GameGUI)
+        gui.setStatusBar(self.statusbar)
+        self.set_text(gui)
         self.set_btn.clicked.connect(self.set_grid)
-        QtCore.QMetaObject.connectSlotsByName(GameGUI)
+        QtCore.QMetaObject.connectSlotsByName(gui)
 
-    def set_text(self, GameGUI):
+    def set_text(self, gui):
         _translate = QtCore.QCoreApplication.translate
-        GameGUI.setWindowTitle("8 Puzzle Game")
+        gui.setWindowTitle("8 Puzzle Game")
         self.solve_btn.setText("Solve")
         self.algorithm_box.setTitle("Algorithm")
         self.comboBox.setItemText(0, "Depth-first")
@@ -129,7 +130,7 @@ class Ui_GameGUI(object):
         self.comboBox.setItemText(2, "A* Euclidean")
         self.comboBox.setItemText(3, "A* Manhattan")
         self.configuration_box.setTitle("Configuration")
-        self.custom_config.setText("123456780")
+        self.custom_config.setText("012345678")
         self.custom_config.selectAll()
         self.set_btn.setText("Set")
         self.shuffle_btn.setText("Shuffle")
@@ -143,8 +144,8 @@ class Ui_GameGUI(object):
     def set_grid(self):
         grid = self.custom_config.text()
         if not self.valid_grid(grid):
-            self.custom_config.setText("123456780")
-            grid = "123456780"
+            self.custom_config.setText("012345678")
+            grid = "012345678"
         self.grid_00.setText(self.num_img(grid[0]))
         self.grid_01.setText(self.num_img(grid[1]))
         self.grid_02.setText(self.num_img(grid[2]))
@@ -155,15 +156,17 @@ class Ui_GameGUI(object):
         self.grid_21.setText(self.num_img(grid[7]))
         self.grid_22.setText(self.num_img(grid[8]))
 
-    def valid_grid(self, grid):
-        if "9" in grid or len(grid) < 9 or not grid.isnumeric():
+    @staticmethod
+    def valid_grid(grid):
+        if len(grid) < 9:
             return False
         for i in range(9):
             if not (str(i) in grid):
                 return False
         return True
 
-    def num_img(self, num):
+    @staticmethod
+    def num_img(num):
         if num in "12345678":
             return str("<html><head/><body><p><img src=\"./imgs/" + num + ".png\"/></p></body></html>")
         else:
