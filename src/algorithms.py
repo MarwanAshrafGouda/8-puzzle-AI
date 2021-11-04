@@ -41,7 +41,8 @@ class SearchAlgorithm(ABC):
             curr = self._remove_from_frontier()
             if curr.configuration in self.expanded:
                 continue
-            self._string_to_grid(curr.configuration)
+            # TO UNDO
+            # self._string_to_grid(curr.configuration)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():
