@@ -11,6 +11,7 @@ class SearchAlgorithm(ABC):
     def __init__(self):
         self.__expanded = set()  # a set of all expanded nodes
         self.__max_depth = 0
+        self._frontier = []
 
     @property
     def expanded(self):
@@ -25,36 +26,19 @@ class SearchAlgorithm(ABC):
         self.__max_depth = max_depth
 
     @abstractmethod
-    def search(self, initial_state: GameState):
+    # appending to the frontier according to the type of search
+    def _append_to_frontier(self, state):
         pass
-
-    @staticmethod
-    # visualizes the given board configuration
-    def _string_to_grid(config: str):
-        print(config)
-
-
-# a parent class for DFS and BFS
-class UninformedSearch(SearchAlgorithm):
-    def __init__(self):
-        super().__init__()
-        self._frontier = deque()
 
     @abstractmethod
-    # popping the deque according to the type of search
-    def remove_from_frontier(self):
+    # popping the frontier according to the type of search
+    def _remove_from_frontier(self):
         pass
 
-    def __is_in_frontier(self, configuration: str):
-        for node in self._frontier:
-            if node.configuration == configuration:
-                return True
-        return False
-
     def search(self, initial_state: GameState):
-        self._frontier.append(initial_state)
+        self._append_to_frontier(initial_state)
         while self._frontier:
-            curr = self.remove_from_frontier()
+            curr = self._remove_from_frontier()
             if curr.configuration in self.expanded:
                 continue
             self._string_to_grid(curr.configuration)
@@ -64,18 +48,33 @@ class UninformedSearch(SearchAlgorithm):
                 return curr, self.expanded, self.max_depth
             for child in curr.spawn_children():
                 if child.configuration not in self.expanded:
-                    self._frontier.append(child)
+                    self._append_to_frontier(child)
         return None, self.expanded, self.max_depth
+
+    @staticmethod
+    # visualizes the given board configuration
+    def _string_to_grid(config: str):
+        print(config)
+
+
+# a parent class for DFS and BFS
+class UninformedSearch(SearchAlgorithm, ABC):
+    def __init__(self):
+        super().__init__()
+        self._frontier = deque()
+
+    def _append_to_frontier(self, state):
+        self._frontier.append(state)
 
 
 class BFS(UninformedSearch):
-    def remove_from_frontier(self):
+    def _remove_from_frontier(self):
         # treat frontier as a queue
         return self._frontier.popleft()
 
 
 class DFS(UninformedSearch):
-    def remove_from_frontier(self):
+    def _remove_from_frontier(self):
         # treat frontier as a stack
         return self._frontier.pop()
 
@@ -85,21 +84,9 @@ class AStar(SearchAlgorithm):
         self.__heuristic = heuristic
         super().__init__()
 
-    def search(self, initial_state: GameState):
-        frontier = []
-        initial_state.heuristic_cost = self.__heuristic.calculate_cost(initial_state)
-        heapq.heappush(frontier, initial_state)
-        while frontier:
-            curr = heapq.heappop(frontier)
-            if curr.configuration in self.expanded:
-                continue
-            self._string_to_grid(curr.configuration)
-            self.expanded.add(curr.configuration)
-            self.max_depth = max(self.max_depth, curr.depth)
-            if curr.is_goal():
-                return curr, self.expanded, self.max_depth
-            for child in curr.spawn_children():
-                if child.configuration not in self.expanded:
-                    child.heuristic_cost = self.__heuristic.calculate_cost(child)
-                    heapq.heappush(frontier, child)
-        return None, self.expanded, self.max_depth
+    def _append_to_frontier(self, state):
+        state.heuristic_cost = self.__heuristic.calculate_cost(state)
+        heapq.heappush(self._frontier, state)
+
+    def _remove_from_frontier(self):
+        return heapq.heappop(self._frontier)
