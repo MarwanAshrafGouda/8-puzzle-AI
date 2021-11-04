@@ -187,24 +187,23 @@ class UiGame(object):
         stop = timeit.default_timer()
 
         if goal:
-            self.set_status(
-                str(round((stop - start) * 1000, 2)) + " ms, expanded nodes: " + str(
-                    len(expanded)) + ", search depth: " + str(max_depth))
-
             tmp_config = self.custom_config.text()
             self.custom_config.setText(str(goal.configuration))
             self.set_grid()
             self.custom_config.setText(tmp_config)
+
+            self.set_status(
+                str(round((stop - start) * 1000, 2)) + " ms, search depth: " + str(
+                    max_depth) + ", expanded nodes: " + str(len(expanded)))
         else:
             self.accumulative_warning()
             msg = QMessageBox()
             msg.setWindowTitle("Oh no!")
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Could not solve.")
-            msg.setDetailedText("Time: " + str(round((stop - start) * 1000, 2)) + " ms\nExpanded nodes: " + str(
-                len(expanded)) + "\nSearch depth: " + str(max_depth))
+            msg.setDetailedText("Time: " + str(round((stop - start) * 1000, 2)) + " ms\nSearch depth: " + str(
+                max_depth) + "\nExpanded nodes: " + str(len(expanded)))
             msg.exec_()
-
 
     def set_status(self, status):
         self.statusbar.showMessage(status)
