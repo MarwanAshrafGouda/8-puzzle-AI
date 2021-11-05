@@ -35,14 +35,14 @@ class SearchAlgorithm(ABC):
     def _remove_from_frontier(self):
         pass
 
-    def search(self, initial_state: GameState):
+    def search(self, initial_state: GameState, filename):
         self._append_to_frontier(initial_state)
         while self._frontier:
             curr = self._remove_from_frontier()
             if curr.configuration in self.expanded:
                 continue
             # TO UNDO
-            # self._string_to_grid(curr.configuration)
+            self._string_to_grid(curr.configuration, filename)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():
@@ -54,8 +54,8 @@ class SearchAlgorithm(ABC):
 
     @staticmethod
     # visualizes the given board configuration
-    def _string_to_grid(config: str):
-        print(config)
+    def _string_to_grid(config: str, filename):
+        print(config, file=filename)
 
 
 # a parent class for DFS and BFS

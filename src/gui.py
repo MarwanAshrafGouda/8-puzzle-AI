@@ -205,7 +205,6 @@ class UiGame(object):
                 len(expanded)) + "\nSearch depth: " + str(max_depth))
             msg.exec_()
 
-
     def set_status(self, status):
         self.statusbar.showMessage(status)
         self.statusbar.setStatusTip(status)
