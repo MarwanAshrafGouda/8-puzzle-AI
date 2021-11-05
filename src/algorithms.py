@@ -42,7 +42,7 @@ class SearchAlgorithm(ABC):
             if curr.configuration in self.expanded:
                 continue
             # TO UNDO
-            self._string_to_grid(curr.configuration, filename)
+            # self._string_to_grid(curr.configuration, filename)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():

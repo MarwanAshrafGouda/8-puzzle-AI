@@ -181,7 +181,7 @@ class UiGame(object):
         initial_state = GameState(self.custom_config.text())
         algorithm = self.identify_algorithm(self.comboBox.currentIndex())
         start = timeit.default_timer()
-        goal, expanded, max_depth = algorithm.search(initial_state)
+        goal, expanded, max_depth = algorithm.search(initial_state, None)
         stop = timeit.default_timer()
 
         if goal:
