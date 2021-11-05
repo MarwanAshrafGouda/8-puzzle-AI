@@ -10,6 +10,7 @@ import random
 import timeit
 from time import sleep
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
 
 from heuristics import *
@@ -21,7 +22,7 @@ default_grid = "012345678"
 
 # noinspection PyAttributeOutsideInit,SpellCheckingInspection
 class UiGame(object):
-    def setup_ui(self, gui, max_time_delay):
+    def setup_ui(self, gui, play_speed):
         gui.setObjectName("GameGUI")
         gui.resize(640, 480)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -34,7 +35,7 @@ class UiGame(object):
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("./imgs/default.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         gui.setWindowIcon(icon)
-        self.max_time_delay = max_time_delay
+        self.play_speed = play_speed
         self.centralwidget = QtWidgets.QWidget(gui)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
@@ -110,23 +111,20 @@ class UiGame(object):
         self.line.setFrameShape(QtWidgets.QFrame.HLine)
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line.setObjectName("line")
-        self.options_box = QtWidgets.QGroupBox(self.centralwidget)
-        self.options_box.setGeometry(QtCore.QRect(470, 270, 141, 111))
-        self.options_box.setObjectName("options_box")
-        self.visual_ch = QtWidgets.QCheckBox(self.options_box)
-        self.visual_ch.setGeometry(QtCore.QRect(10, 20, 121, 17))
-        self.visual_ch.setObjectName("visual_ch")
-        self.play_btn = QtWidgets.QPushButton(self.options_box)
+        self.play_btn = QtWidgets.QPushButton(self.centralwidget)
         self.play_btn.setEnabled(False)
-        self.play_btn.setGeometry(QtCore.QRect(10, 45, 121, 56))
+        self.play_btn.setGeometry(QtCore.QRect(470, 330, 141, 56))
         self.play_btn.setObjectName("play_btn")
         gui.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(gui)
         self.statusbar.setObjectName("statusbar")
         gui.setStatusBar(self.statusbar)
         self.set_text(gui)
+        self.comboBox.currentIndexChanged.connect(self.disable_play_btn)
+        self.comboBox.currentIndexChanged.connect(self.set_grid)
         self.set_btn.clicked.connect(self.set_grid)
         self.shuffle_btn.clicked.connect(self.shuffle_grid)
+        self.play_btn.clicked.connect(self.play_path_to_goal)
         self.solve_btn.clicked.connect(self.solve_grid)
         QtCore.QMetaObject.connectSlotsByName(gui)
 
@@ -144,10 +142,13 @@ class UiGame(object):
         self.custom_config.selectAll()
         self.set_btn.setText("Set")
         self.shuffle_btn.setText("Shuffle")
-        self.options_box.setTitle("Bonus")
-        self.visual_ch.setText("Visual Search")
         self.play_btn.setText("Play")
         self.set_grid()
+
+    def disable_play_btn(self):
+        self.play_btn.setText("Play")
+        self.play_btn.setEnabled(False)
+        self.solve_btn.setFocus(Qt.ShortcutFocusReason)
 
     def set_grid(self):
         config = self.custom_config.text()
@@ -161,6 +162,7 @@ class UiGame(object):
         else:
             self.set_status("")
 
+        self.disable_play_btn()
         self.grid_00.setText(self.num_img(config[0]))
         self.grid_01.setText(self.num_img(config[1]))
         self.grid_02.setText(self.num_img(config[2]))
@@ -175,7 +177,6 @@ class UiGame(object):
         self.custom_config.setText(''.join(random.sample(default_grid, len(default_grid))))
         self.set_grid()
 
-    # TODO
     def solve_grid(self):
         initial_state = GameState(self.custom_config.text())
         algorithm = self.identify_algorithm(self.comboBox.currentIndex())
@@ -184,10 +185,13 @@ class UiGame(object):
         stop = timeit.default_timer()
 
         if goal:
-            self.play_path_to_goal(goal)
             self.set_status(
                 str(round((stop - start) * 1000, 2)) + " ms, search depth: " + str(
                     max_depth) + ", expanded nodes: " + str(len(expanded)))
+            self.path_to_goal = goal
+            self.play_btn.setEnabled(True)
+            self.play_btn.setFocus(Qt.ShortcutFocusReason)
+            self.play_btn.setText("Play ( " + str(goal.movement_cost) + " steps )")
         else:
             self.accumulative_warning()
             msg = QMessageBox()
@@ -202,7 +206,9 @@ class UiGame(object):
         self.statusbar.showMessage(status)
         self.statusbar.setStatusTip(status)
 
-    def play_path_to_goal(self, goal):
+    def play_path_to_goal(self):
+        self.disable_play_btn()
+        goal = self.path_to_goal
         tmp_config = self.custom_config.text()
 
         sequence = []
@@ -210,14 +216,16 @@ class UiGame(object):
             sequence.append(goal.configuration)
             goal = goal.parent
 
-        time_delay = min(60 / len(sequence), self.max_time_delay)
-
         for config in reversed(sequence):
-            sleep(time_delay)
+            sleep(self.play_speed)
             self.custom_config.setText(config)
             self.set_grid()
             self.custom_config.setText(tmp_config)
             QtCore.QCoreApplication.processEvents()
+
+        # The worst yet perfect solution for the stuck hovering effect.
+        self.play_btn.setEnabled(True)
+        self.play_btn.setEnabled(False)
 
         self.custom_config.setText(tmp_config)
         self.set_status(self.statusbar.currentMessage())
