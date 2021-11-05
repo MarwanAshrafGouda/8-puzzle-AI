@@ -2,8 +2,8 @@ import heapq
 from abc import abstractmethod, ABC
 from collections import deque
 
-from GameState import GameState
-from Heuristics import Heuristic
+from state import GameState
+from heuristics import Heuristic
 
 
 # parent abstract class for all search algorithms
