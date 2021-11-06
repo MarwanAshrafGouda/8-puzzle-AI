@@ -23,12 +23,3 @@ The algorithms used in this project are:
       The sum of the lengths of the shortest straight line between each tile and its correct position
     * Manhattan Distance  
       The sum of the number of horizontal and vertical tiles between each tile and its correct position
-
-### Depth-first Search
-
-### Breadth-first Search
-
-### A* Search using Euclidean Distance
-
-### A* Search using Manhattan Distance
-
