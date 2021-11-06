@@ -197,11 +197,9 @@ class UiGame(object):
             color = color.parent
         if len(expanded) < 20000:
             dot.render('expanded_nodes.gv', view=True)
-            open('expanded_nodes.txt', 'w').close()
         else:
-            with open('expanded_nodes.txt', 'w') as f:
+            with open('expanded_nodes.gv', 'w') as f:
                 print(dot.source, file=f)
-            open('expanded_nodes.gv', 'w').close()
         if goal:
             self.set_status(
                 str(round((stop - start) * 1000, 2)) + " ms, search depth: " + str(
