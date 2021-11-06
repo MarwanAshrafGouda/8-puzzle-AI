@@ -181,36 +181,32 @@ class UiGame(object):
 
     def solve_grid(self):
         initial_state = GameState(self.custom_config.text())
-        algorithm = self.identify_algorithm(self.comboBox.currentIndex())
+
         dot = Digraph()
         dot.format = 'png'
-        start = timeit.default_timer()
         stats = StatsFile('stats.txt')
+        algorithm = self.identify_algorithm(self.comboBox.currentIndex())
+
+        start = timeit.default_timer()
         goal, expanded, max_depth, dot = algorithm.search(initial_state, dot)
         stop = timeit.default_timer()
+
         if self.print_configs:
             for node in expanded:
-                stats.write_config(node)
-        color = goal
-        while color:
-            dot.node(string_to_grid(color.configuration), style='filled', fillcolor='lightgreen')
-            color = color.parent
-        if len(expanded) < 20000:
-            dot.render('expanded_nodes.gv', view=True)
-            open('expanded_nodes.txt', 'w').close()
-        else:
-            with open('expanded_nodes.txt', 'w') as f:
-                print(dot.source, file=f)
-            open('expanded_nodes.gv', 'w').close()
+                stats.write(node)
+
+        # MARO's PROBLEM
+        # self.generate_dot_graph(dot, expanded, goal, 20000)
+
         if goal:
             self.set_status(
                 str(round((stop - start) * 1000, 2)) + " ms, search depth: " + str(
                     max_depth) + ", expanded nodes: " + str(len(expanded)))
 
-            stats.write_stat("\nRuntime: " + str((stop - start) * 1000) + " ms")
-            stats.write_stat("Number of expanded nodes: " + str(len(expanded)))
-            stats.write_stat("Search depth: " + str(max_depth))
-            stats.write_stat("Cost: " + str(goal.movement_cost))
+            stats.write("\nRuntime: " + str((stop - start) * 1000) + " ms")
+            stats.write("Number of expanded nodes: " + str(len(expanded)))
+            stats.write("Search depth: " + str(max_depth))
+            stats.write("Cost: " + str(goal.movement_cost))
 
             self.path_to_goal = goal
             self.play_btn.setEnabled(True)
@@ -305,3 +301,17 @@ class UiGame(object):
             return AStar(EuclideanHeuristic())
         else:
             return AStar(ManhattanHeuristic())
+
+    @staticmethod
+    def generate_dot_graph(dot, expanded, goal, threshold):
+        color = goal
+        while color:
+            dot.node(string_to_grid(color.configuration), style='filled', fillcolor='lightgreen')
+            color = color.parent
+        if len(expanded) < threshold:
+            dot.render('expanded_nodes.gv', view=True)
+            open('expanded_nodes.txt', 'w').close()
+        else:
+            with open('expanded_nodes.txt', 'w') as f:
+                print(dot.source, file=f)
+            open('expanded_nodes.gv', 'w').close()

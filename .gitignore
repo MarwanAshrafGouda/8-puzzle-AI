@@ -1,3 +1,4 @@
+*.gv
 *.txt
 .idea
 import-gui.sh
