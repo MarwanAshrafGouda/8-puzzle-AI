@@ -12,17 +12,18 @@ from time import sleep
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5 import QtCore, QtGui, QtWidgets
 
+from stats import *
 from heuristics import *
 from algorithms import *
-from PyQt5 import QtCore, QtGui, QtWidgets
 
 default_grid = "012345678"
 
 
 # noinspection PyAttributeOutsideInit,SpellCheckingInspection
 class UiGame(object):
-    def setup_ui(self, gui, play_speed):
+    def setup_ui(self, gui, play_speed, print_configs):
         gui.setObjectName("GameGUI")
         gui.resize(640, 480)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -36,6 +37,7 @@ class UiGame(object):
         icon.addPixmap(QtGui.QPixmap("./imgs/default.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         gui.setWindowIcon(icon)
         self.play_speed = play_speed
+        self.print_configs = print_configs
         self.centralwidget = QtWidgets.QWidget(gui)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
@@ -181,13 +183,20 @@ class UiGame(object):
         initial_state = GameState(self.custom_config.text())
         algorithm = self.identify_algorithm(self.comboBox.currentIndex())
         start = timeit.default_timer()
-        goal, expanded, max_depth = algorithm.search(initial_state, None)
+        stats = StatsFile('stats.txt')
+        goal, expanded, max_depth = algorithm.search(initial_state, stats.write_config if self.print_configs else None)
         stop = timeit.default_timer()
 
         if goal:
             self.set_status(
                 str(round((stop - start) * 1000, 2)) + " ms, search depth: " + str(
                     max_depth) + ", expanded nodes: " + str(len(expanded)))
+
+            stats.write_stat("\nRuntime: " + str((stop - start) * 1000) + " ms")
+            stats.write_stat("Number of expanded nodes: " + str(len(expanded)))
+            stats.write_stat("Search depth: " + str(max_depth))
+            stats.write_stat("Cost: " + str(goal.movement_cost))
+
             self.path_to_goal = goal
             self.play_btn.setEnabled(True)
             self.play_btn.setFocus(Qt.ShortcutFocusReason)
@@ -207,6 +216,7 @@ class UiGame(object):
         self.statusbar.setStatusTip(status)
 
     def play_path_to_goal(self):
+        prev_status = self.statusbar.currentMessage()
         self.disable_play_btn()
         goal = self.path_to_goal
         tmp_config = self.custom_config.text()
@@ -228,7 +238,7 @@ class UiGame(object):
         self.play_btn.setEnabled(False)
 
         self.custom_config.setText(tmp_config)
-        self.set_status(self.statusbar.currentMessage())
+        self.set_status(prev_status)
 
     def accumulative_warning(self):
         if "unsolvable" in self.statusbar.currentMessage():
