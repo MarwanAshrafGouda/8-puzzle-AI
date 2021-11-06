@@ -213,8 +213,8 @@ class Game(object):
             for node in expanded:
                 stats.write(node)
 
-        # Uncomment me, go ahead
-        # self.generate_dot_graph(dot, expanded, goal, 20000)
+        # visualize the search tree
+        generate_dot_graph(dot, expanded, goal)
 
         if goal:
             self.set_status(
@@ -319,17 +319,3 @@ class Game(object):
             return AStar(EuclideanHeuristic())
         else:
             return AStar(ManhattanHeuristic())
-
-    @staticmethod
-    def generate_dot_graph(dot, expanded, goal, threshold):
-        color = goal
-        while color:
-            dot.node(string_to_grid(color.configuration), style='filled', fillcolor='lightgreen')
-            color = color.parent
-        if len(expanded) < threshold:
-            dot.render('expanded_nodes.gv', view=True)
-            open('expanded_nodes.txt', 'w').close()
-        else:
-            with open('expanded_nodes.txt', 'w') as f:
-                print(dot.source, file=f)
-            open('expanded_nodes.gv', 'w').close()

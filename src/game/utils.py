@@ -18,3 +18,15 @@ def string_to_grid(config: str):
             grid += config[3 * i + j % 3]
         grid += '\n'
     return grid
+
+
+def generate_dot_graph(dot, expanded, goal, threshold=20000):
+    color = goal
+    while color:
+        dot.node(string_to_grid(color.configuration), style='filled', fillcolor='lightgreen')
+        color = color.parent
+    if len(expanded) < threshold:
+        dot.render('game/expanded_nodes.gv', view=True)
+    else:
+        with open('game/expanded_nodes.gv', 'w') as f:
+            print(dot.source, file=f)

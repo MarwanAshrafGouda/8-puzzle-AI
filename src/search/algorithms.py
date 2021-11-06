@@ -4,9 +4,9 @@ from graphviz import Digraph
 from collections import deque
 from abc import abstractmethod, ABC
 
-from src.game.state import GameState
-from src.game.utils import string_to_grid
-from src.search.heuristics import Heuristic
+from game.state import GameState
+from game.utils import string_to_grid
+from search.heuristics import Heuristic
 
 
 # parent abstract class for all search algorithms

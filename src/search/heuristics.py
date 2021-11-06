@@ -1,7 +1,7 @@
 from math import sqrt
 from abc import ABC, abstractmethod
 
-from src.game.state import GameState
+from game.state import GameState
 
 
 # parent abstract class for heuristics
