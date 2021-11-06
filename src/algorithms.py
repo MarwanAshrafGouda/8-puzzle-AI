@@ -4,9 +4,9 @@ from collections import deque
 
 from graphviz import Digraph
 
-from utils import string_to_grid
 from heuristics import Heuristic
 from state import GameState
+from utils import string_to_grid
 
 
 # parent abstract class for all search algorithms
@@ -38,7 +38,7 @@ class SearchAlgorithm(ABC):
     def _remove_from_frontier(self):
         pass
 
-    def search(self, initial_state: GameState, dot: Digraph, print_config_fn):
+    def search(self, initial_state: GameState, dot: Digraph):
         self._append_to_frontier(initial_state)
         while self._frontier:
             curr = self._remove_from_frontier()
@@ -47,16 +47,14 @@ class SearchAlgorithm(ABC):
             # add the parent-child edge to the dot object
             if curr.parent:
                 dot.edge(string_to_grid(curr.parent.configuration), string_to_grid(curr.configuration))
-            if print_config_fn:
-                print_config_fn(curr.configuration)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():
-                return curr, len(self.expanded), self.max_depth, dot
+                return curr, self.expanded, self.max_depth, dot
             for child in curr.spawn_children():
                 if child.configuration not in self.expanded:
                     self._append_to_frontier(child)
-        return None, len(self.expanded), self.max_depth, dot
+        return None, self.expanded, self.max_depth, dot
 
 
 # a parent class for DFS and BFS

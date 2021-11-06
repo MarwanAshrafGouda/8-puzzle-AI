@@ -1,4 +1,4 @@
-# visualizes the given board configuration
+# turns the given string to a grid-like format
 def string_to_grid(config: str):
     grid = ''
     for i in range(0, 3):

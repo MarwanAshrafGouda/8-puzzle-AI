@@ -10,13 +10,13 @@ import random
 import timeit
 from time import sleep
 
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-from stats import *
-from heuristics import *
 from algorithms import *
+from heuristics import *
+from stats import *
 
 default_grid = "012345678"
 
@@ -34,7 +34,7 @@ class UiGame(object):
         gui.setMinimumSize(QtCore.QSize(640, 480))
         gui.setMaximumSize(QtCore.QSize(640, 480))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("./imgs/default.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("./imgs/ai.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         gui.setWindowIcon(icon)
         self.play_speed = play_speed
         self.print_configs = print_configs
@@ -185,19 +185,23 @@ class UiGame(object):
         dot = Digraph()
         dot.format = 'png'
         start = timeit.default_timer()
-        goal, expanded_count, max_depth, dot = algorithm.search(initial_state, dot)
         stats = StatsFile('stats.txt')
-        goal, expanded, max_depth = algorithm.search(initial_state, stats.write_config if self.print_configs else None)
+        goal, expanded, max_depth, dot = algorithm.search(initial_state, dot)
         stop = timeit.default_timer()
+        if self.print_configs:
+            for node in expanded:
+                stats.write_config(node)
         color = goal
         while color:
             dot.node(string_to_grid(color.configuration), style='filled', fillcolor='lightgreen')
             color = color.parent
-        if expanded_count < 20000:
+        if len(expanded) < 20000:
             dot.render('expanded_nodes.gv', view=True)
+            open('expanded_nodes.txt', 'w').close()
         else:
             with open('expanded_nodes.txt', 'w') as f:
                 print(dot.source, file=f)
+            open('expanded_nodes.gv', 'w').close()
         if goal:
             self.set_status(
                 str(round((stop - start) * 1000, 2)) + " ms, search depth: " + str(
