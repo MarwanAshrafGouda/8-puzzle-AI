@@ -38,7 +38,7 @@ class SearchAlgorithm(ABC):
     def _remove_from_frontier(self):
         pass
 
-    def search(self, initial_state: GameState, dot: Digraph):
+    def search(self, initial_state: GameState, dot: Digraph, print_config_fn):
         self._append_to_frontier(initial_state)
         while self._frontier:
             curr = self._remove_from_frontier()
@@ -47,6 +47,8 @@ class SearchAlgorithm(ABC):
             # add the parent-child edge to the dot object
             if curr.parent:
                 dot.edge(string_to_grid(curr.parent.configuration), string_to_grid(curr.configuration))
+            if print_config_fn:
+                print_config_fn(curr.configuration)
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():
