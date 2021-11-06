@@ -10,19 +10,20 @@ import random
 import timeit
 from time import sleep
 
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
 
-from heuristics import *
-from algorithms import *
-from PyQt5 import QtCore, QtGui, QtWidgets
+from src.game.utils import *
+from src.search.algorithms import *
+from src.search.heuristics import *
 
 default_grid = "012345678"
 
 
 # noinspection PyAttributeOutsideInit,SpellCheckingInspection
-class UiGame(object):
-    def setup_ui(self, gui, play_speed):
+class Game(object):
+    def setup_ui(self, gui, print_configs):
         gui.setObjectName("GameGUI")
         gui.resize(640, 480)
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -33,9 +34,9 @@ class UiGame(object):
         gui.setMinimumSize(QtCore.QSize(640, 480))
         gui.setMaximumSize(QtCore.QSize(640, 480))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("./imgs/default.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("../imgs/ai.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         gui.setWindowIcon(icon)
-        self.play_speed = play_speed
+        self.print_configs = print_configs
         self.centralwidget = QtWidgets.QWidget(gui)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
@@ -111,10 +112,24 @@ class UiGame(object):
         self.line.setFrameShape(QtWidgets.QFrame.HLine)
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line.setObjectName("line")
-        self.play_btn = QtWidgets.QPushButton(self.centralwidget)
+        self.bonus_box = QtWidgets.QGroupBox(self.centralwidget)
+        self.bonus_box.setGeometry(QtCore.QRect(470, 270, 141, 111))
+        self.bonus_box.setObjectName("bonus_box")
+        self.play_btn = QtWidgets.QPushButton(self.bonus_box)
         self.play_btn.setEnabled(False)
-        self.play_btn.setGeometry(QtCore.QRect(470, 330, 141, 56))
+        self.play_btn.setGeometry(QtCore.QRect(10, 50, 121, 51))
         self.play_btn.setObjectName("play_btn")
+        self.play_speed = QtWidgets.QDoubleSpinBox(self.bonus_box)
+        self.play_speed.setGeometry(QtCore.QRect(50, 20, 81, 21))
+        self.play_speed.setDecimals(1)
+        self.play_speed.setMaximum(9.9)
+        self.play_speed.setSingleStep(0.1)
+        self.play_speed.setAccelerated(True)
+        self.play_speed.setProperty("value", 0.2)
+        self.play_speed.setObjectName("doubleSpinBox")
+        self.label = QtWidgets.QLabel(self.bonus_box)
+        self.label.setGeometry(QtCore.QRect(10, 20, 47, 21))
+        self.label.setObjectName("label")
         gui.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(gui)
         self.statusbar.setObjectName("statusbar")
@@ -142,7 +157,12 @@ class UiGame(object):
         self.custom_config.selectAll()
         self.set_btn.setText("Set")
         self.shuffle_btn.setText("Shuffle")
-        self.play_btn.setText("Play")
+        self.bonus_box.setTitle("Bonus")
+        self.play_btn.setText("Play (000000 steps)")
+        self.play_speed.setToolTip("Time interval between steps.")
+        self.play_speed.setSuffix(" seconds")
+        self.label.setToolTip("Time interval between steps.")
+        self.label.setText("Delay:")
         self.set_grid()
 
     def disable_play_btn(self):
@@ -179,15 +199,33 @@ class UiGame(object):
 
     def solve_grid(self):
         initial_state = GameState(self.custom_config.text())
+
+        dot = Digraph()
+        dot.format = 'png'
+        stats = StatsFile('stats.txt')
         algorithm = self.identify_algorithm(self.comboBox.currentIndex())
+
         start = timeit.default_timer()
-        goal, expanded, max_depth = algorithm.search(initial_state, None)
+        goal, expanded, max_depth, dot = algorithm.search(initial_state, dot)
         stop = timeit.default_timer()
+
+        if self.print_configs:
+            for node in expanded:
+                stats.write(node)
+
+        # Uncomment me, go ahead
+        # self.generate_dot_graph(dot, expanded, goal, 20000)
 
         if goal:
             self.set_status(
                 str(round((stop - start) * 1000, 2)) + " ms, search depth: " + str(
                     max_depth) + ", expanded nodes: " + str(len(expanded)))
+
+            stats.write("\nRuntime: " + str((stop - start) * 1000) + " ms")
+            stats.write("Number of expanded nodes: " + str(len(expanded)))
+            stats.write("Search depth: " + str(max_depth))
+            stats.write("Cost: " + str(goal.movement_cost))
+
             self.path_to_goal = goal
             self.play_btn.setEnabled(True)
             self.play_btn.setFocus(Qt.ShortcutFocusReason)
@@ -207,6 +245,7 @@ class UiGame(object):
         self.statusbar.setStatusTip(status)
 
     def play_path_to_goal(self):
+        prev_status = self.statusbar.currentMessage()
         self.disable_play_btn()
         goal = self.path_to_goal
         tmp_config = self.custom_config.text()
@@ -217,7 +256,7 @@ class UiGame(object):
             goal = goal.parent
 
         for config in reversed(sequence):
-            sleep(self.play_speed)
+            sleep(self.play_speed.value())
             self.custom_config.setText(config)
             self.set_grid()
             self.custom_config.setText(tmp_config)
@@ -228,7 +267,7 @@ class UiGame(object):
         self.play_btn.setEnabled(False)
 
         self.custom_config.setText(tmp_config)
-        self.set_status(self.statusbar.currentMessage())
+        self.set_status(prev_status)
 
     def accumulative_warning(self):
         if "unsolvable" in self.statusbar.currentMessage():
@@ -266,7 +305,7 @@ class UiGame(object):
     @staticmethod
     def num_img(num):
         if num in "12345678":
-            return str("<html><head/><body><p><img src=\"./imgs/" + num + ".png\"/></p></body></html>")
+            return str("<html><head/><body><p><img src=\"../imgs/" + num + ".png\"/></p></body></html>")
         else:
             return str("")
 
@@ -280,3 +319,17 @@ class UiGame(object):
             return AStar(EuclideanHeuristic())
         else:
             return AStar(ManhattanHeuristic())
+
+    @staticmethod
+    def generate_dot_graph(dot, expanded, goal, threshold):
+        color = goal
+        while color:
+            dot.node(string_to_grid(color.configuration), style='filled', fillcolor='lightgreen')
+            color = color.parent
+        if len(expanded) < threshold:
+            dot.render('expanded_nodes.gv', view=True)
+            open('expanded_nodes.txt', 'w').close()
+        else:
+            with open('expanded_nodes.txt', 'w') as f:
+                print(dot.source, file=f)
+            open('expanded_nodes.gv', 'w').close()

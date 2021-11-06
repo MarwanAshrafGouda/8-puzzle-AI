@@ -1,9 +1,12 @@
 import heapq
-from abc import abstractmethod, ABC
-from collections import deque
 
-from state import GameState
-from heuristics import Heuristic
+from graphviz import Digraph
+from collections import deque
+from abc import abstractmethod, ABC
+
+from src.game.state import GameState
+from src.game.utils import string_to_grid
+from src.search.heuristics import Heuristic
 
 
 # parent abstract class for all search algorithms
@@ -35,27 +38,23 @@ class SearchAlgorithm(ABC):
     def _remove_from_frontier(self):
         pass
 
-    def search(self, initial_state: GameState, filename):
+    def search(self, initial_state: GameState, dot: Digraph):
         self._append_to_frontier(initial_state)
         while self._frontier:
             curr = self._remove_from_frontier()
             if curr.configuration in self.expanded:
                 continue
-            # TO UNDO
-            # self._string_to_grid(curr.configuration, filename)
+            # add the parent-child edge to the dot object
+            if curr.parent:
+                dot.edge(string_to_grid(curr.parent.configuration), string_to_grid(curr.configuration))
             self.expanded.add(curr.configuration)
             self.max_depth = max(self.max_depth, curr.depth)
             if curr.is_goal():
-                return curr, self.expanded, self.max_depth
+                return curr, self.expanded, self.max_depth, dot
             for child in curr.spawn_children():
                 if child.configuration not in self.expanded:
                     self._append_to_frontier(child)
-        return None, self.expanded, self.max_depth
-
-    @staticmethod
-    # visualizes the given board configuration
-    def _string_to_grid(config: str, filename):
-        print(config, file=filename)
+        return None, self.expanded, self.max_depth, dot
 
 
 # a parent class for DFS and BFS

@@ -1,3 +1,5 @@
+*.gv
+*.txt
 .idea
 import-gui.sh
 src/__pycache__
