@@ -2,4 +2,5 @@
 *.txt
 .idea
 import-gui.sh
-src/__pycache__
+src/game/__pycache__/
+src/search/__pycache__/
