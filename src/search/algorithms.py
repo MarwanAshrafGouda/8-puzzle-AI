@@ -1,12 +1,12 @@
 import heapq
-from abc import abstractmethod, ABC
-from collections import deque
 
 from graphviz import Digraph
+from collections import deque
+from abc import abstractmethod, ABC
 
-from heuristics import Heuristic
-from state import GameState
-from utils import string_to_grid
+from src.game.state import GameState
+from src.game.utils import string_to_grid
+from src.search.heuristics import Heuristic
 
 
 # parent abstract class for all search algorithms
