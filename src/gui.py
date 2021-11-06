@@ -10,12 +10,12 @@ import random
 import timeit
 from time import sleep
 
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
 
-from heuristics import *
 from algorithms import *
-from PyQt5 import QtCore, QtGui, QtWidgets
+from heuristics import *
 
 default_grid = "012345678"
 
@@ -180,14 +180,24 @@ class UiGame(object):
     def solve_grid(self):
         initial_state = GameState(self.custom_config.text())
         algorithm = self.identify_algorithm(self.comboBox.currentIndex())
+        dot = Digraph()
+        dot.format = 'png'
         start = timeit.default_timer()
-        goal, expanded, max_depth = algorithm.search(initial_state, None)
+        goal, expanded_count, max_depth, dot = algorithm.search(initial_state, dot)
         stop = timeit.default_timer()
-
+        color = goal
+        while color:
+            dot.node(string_to_grid(color.configuration), style='filled', fillcolor='lightgreen')
+            color = color.parent
+        if expanded_count < 20000:
+            dot.render('expanded_nodes.gv', view=True)
+        else:
+            with open('expanded_nodes.txt', 'w') as f:
+                print(dot.source, file=f)
         if goal:
             self.set_status(
                 str(round((stop - start) * 1000, 2)) + " ms, search depth: " + str(
-                    max_depth) + ", expanded nodes: " + str(len(expanded)))
+                    max_depth) + ", expanded nodes: " + str(expanded_count))
             self.path_to_goal = goal
             self.play_btn.setEnabled(True)
             self.play_btn.setFocus(Qt.ShortcutFocusReason)
@@ -199,7 +209,7 @@ class UiGame(object):
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Could not solve.")
             msg.setDetailedText("Time: " + str(round((stop - start) * 1000, 2)) + " ms\nSearch depth: " + str(
-                max_depth) + "\nExpanded nodes: " + str(len(expanded)))
+                max_depth) + "\nExpanded nodes: " + str(expanded_count))
             msg.exec_()
 
     def set_status(self, status):
